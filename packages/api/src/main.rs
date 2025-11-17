@@ -1,6 +1,13 @@
 pub mod startup;
 
+use std::sync::Arc;
+
+use application::books::{
+  CreateBookCommandHandler, CreateBookCommandHandlerTrait,
+};
+use domain::commands::CreateBookCommand;
 use env_logger::Env;
+use infrastructure::{repositories::BookRepository, services::BookServiceImpl};
 use log::info;
 
 #[tokio::main]
@@ -23,6 +30,23 @@ async fn main() {
     "🚀 API running at http://localhost:{}",
     std::env::var("PORT").unwrap_or_else(|_| "3030".to_string())
   );
+
+  let book_repo = BookRepository::new(state.db.connection.clone());
+  let book_service = Arc::from(BookServiceImpl::new(book_repo));
+
+  let create_book_command = CreateBookCommand {
+    author: "Vivekanand".into(),
+    title: "Rajyog".into(),
+    isbn: "some-rand-isbn-1".into(),
+    total_copies: 650,
+    published_year: Some(1908),
+  };
+
+  let handler = CreateBookCommandHandler::new(book_service);
+  match handler.handle(create_book_command).await {
+    Ok(_) => println!("book created!"),
+    Err(err) => println!("application error, {:?}", err),
+  }
   // warp::serve(api)
   //   .run((
   //     [127, 0, 0, 1],
