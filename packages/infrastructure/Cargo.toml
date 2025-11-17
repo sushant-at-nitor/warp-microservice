@@ -1,0 +1,14 @@
+[package]
+name = "infrastructure"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+async-trait = { workspace = true }
+dotenvy = { workspace = true }
+sea-orm = { workspace = true }
+sea-orm-migration = { workspace = true }
+application = { path = "../application" }
+domain = { path = "../domain" }
+common = { path = "../common" }
+

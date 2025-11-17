@@ -1,0 +1,29 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: websignal
+      POSTGRES_PASSWORD: websignal
+      POSTGRES_DB: websignal
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  api:
+    build:
+      context: ./packages/api
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgres://websignal:websignal@db:5432/websignal
+      # Add other environment variables as needed
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    restart: on-failure
+
+volumes:
+  pgdata:
