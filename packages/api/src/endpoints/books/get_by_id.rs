@@ -3,10 +3,7 @@ use std::sync::Arc;
 use warp::Filter;
 
 use application::books::{
-  query_handlers::get_by_id_handler::{
-    GetBookByIdQueryHandler, GetBookByIdQueryHandlerTrait,
-  },
-  service::BookService,
+  BookService, GetBookByIdQueryHandler, GetBookByIdQueryHandlerTrait,
 };
 use domain::queries::GetBookByIdQuery;
 

@@ -3,8 +3,7 @@ use std::sync::Arc;
 use warp::Filter;
 
 use application::books::{
-  BookService,
-  command_handlers::{DeleteBookCommandHandler, DeleteBookCommandHandlerTrait},
+  BookService, DeleteBookCommandHandler, DeleteBookCommandHandlerTrait,
 };
 use domain::commands::DeleteBookCommand;
 

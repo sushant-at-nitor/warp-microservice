@@ -6,7 +6,8 @@ use sea_orm::DbErr;
 #[async_trait]
 pub trait BookService: Send + Sync {
   async fn get_all(&self) -> Result<Vec<Book>, DbErr>;
-  async fn list(&self, page: u64, page_size: u64) -> Result<Paged<Book>, DbErr>;
+  async fn list(&self, page: u64, page_size: u64)
+  -> Result<Paged<Book>, DbErr>;
   async fn get_by_id(&self, id: i32) -> Result<Option<Book>, DbErr>;
   async fn get_available(&self) -> Result<Vec<Book>, DbErr>;
   async fn search(&self, query: BookQuery) -> Result<Vec<Book>, DbErr>;

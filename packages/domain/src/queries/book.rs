@@ -9,6 +9,12 @@ pub struct GetBookByIdQuery {
 pub struct GetAllBooksQuery;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListBooks {
+  pub page: u64,
+  pub page_size: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GetAvailableBooksQuery;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
