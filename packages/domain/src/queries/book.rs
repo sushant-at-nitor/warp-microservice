@@ -10,8 +10,10 @@ pub struct GetAllBooksQuery;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ListBooks {
-  pub page: u64,
-  pub page_size: u64,
+  #[serde(default)]
+  pub page: Option<u64>,
+  #[serde(default)]
+  pub page_size: Option<u64>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
