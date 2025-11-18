@@ -1,0 +1,38 @@
+###
+# Create a new book
+POST http://localhost:8005/books
+Content-Type: application/json
+
+{
+  "title": "The Rust Programming Language",
+  "author": "Steve Klabnik, Carol Nichols",
+  "published_year": 2019,
+  "isbn": "9781593278281",
+  "total_copies": 87,
+  "available_copies": 87
+}
+
+###
+# Update a book
+PUT http://localhost:8005/books/1
+Content-Type: application/json
+
+{
+  "title": "The Rust Programming Language (2nd Edition)",
+  "author": "Steve Klabnik, Carol Nichols",
+  "published_year": 2024,
+  "isbn": "9781593278281",
+  "available_copies": 10
+}
+
+###
+# Delete a book
+DELETE http://localhost:8005/books/1
+
+###
+# Get all books (supports pagination)
+GET http://localhost:8005/books?page=1&page_size=10
+
+###
+# Get book by id
+GET http://localhost:8005/books/2
