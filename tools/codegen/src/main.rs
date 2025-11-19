@@ -1,6 +1,7 @@
 use clap::Parser;
 
 mod generators;
+mod writers;
 mod sql_parser;
 
 #[derive(Parser, Debug)]
@@ -21,7 +22,20 @@ fn main() -> anyhow::Result<()> {
 
   println!("Parsed table schema: {:?}", schema);
 
-  let expanded = generators::domain_generator::generate(&args.name, schema)?;
+  let expanded =
+    generators::domain_generator::generate(&args.name, schema.clone())?;
+
+  println!("{expanded}");
+
+  let expanded = generators::commands_generator::generate(schema.clone())?;
+
+  println!("{expanded}");
+
+  let expanded = generators::queries_generator::generate(schema.clone())?;
+
+  println!("{expanded}");
+
+  let expanded = generators::migration_generator::generate(schema.clone())?;
 
   println!("{expanded}");
 

@@ -8,7 +8,7 @@ use crate::generators::helpers::{
   to_screaming_snake_name, to_snake_name,
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct NameVariants {
   pub original: String,
   pub snake: String,
@@ -37,14 +37,14 @@ impl NameVariants {
   }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Field {
   pub name: NameVariants,
   pub ty: String,
   pub is_pk: bool,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct TableSchema {
   pub name: NameVariants,
   pub fields: Vec<Field>,

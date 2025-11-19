@@ -31,7 +31,7 @@ pub fn generate(name: &str, schema: TableSchema) -> anyhow::Result<String> {
         .collect();
 
     let ctx = TemplateContext {
-        aggregate_name: schema.name.camel,
+        aggregate_name: schema.name.pascal,
         fields,
     };
 
