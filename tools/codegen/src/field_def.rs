@@ -39,8 +39,8 @@ pub fn parse_field(s: &str) -> Result<FieldDef, String> {
       ))
     }
   };
-  let unique   = parts.iter().any(|&p| p == "unique");
-  let nullable = !parts.iter().any(|&p| p == "required");
+  let unique   = parts.contains(&"unique");
+  let nullable = !parts.contains(&"required");
   Ok(FieldDef { name: name.to_string(), ty, unique, nullable })
 }
 
