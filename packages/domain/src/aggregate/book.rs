@@ -1,7 +1,11 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::{commands::UpdateBookCommand, events::DomainEvent};
+use crate::{
+  aggregate::aggregate_base::Aggregate,
+  commands::UpdateBookCommand,
+  events::DomainEvent,
+};
 
 /// Domain events for Book aggregate
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -42,6 +46,19 @@ impl DomainEvent for BookReturned {
 pub enum BookEvent {
   Borrowed(BookBorrowed),
   Returned(BookReturned),
+}
+
+impl DomainEvent for BookEvent {
+  fn occurred_on(&self) -> DateTime<Utc> {
+    match self {
+      BookEvent::Borrowed(e) => e.occurred_on,
+      BookEvent::Returned(e) => e.occurred_on,
+    }
+  }
+
+  fn as_any(&self) -> &dyn std::any::Any {
+    self
+  }
 }
 
 // ---------- Aggregate Root ----------
@@ -126,8 +143,27 @@ impl Book {
     self.domain_events.push(BookEvent::Returned(event));
   }
 
-  /// Retrieve and clear domain events
+  /// Retrieve and clear domain events (direct call — bypasses Aggregate trait)
   pub fn take_events(&mut self) -> Vec<BookEvent> {
+    std::mem::take(&mut self.domain_events)
+  }
+}
+
+impl Aggregate for Book {
+  type Event = BookEvent;
+
+  fn apply(&mut self, event: &BookEvent) {
+    match event {
+      BookEvent::Borrowed(_) => self.available_copies -= 1,
+      BookEvent::Returned(_) => self.available_copies += 1,
+    }
+  }
+
+  fn record(&mut self, event: BookEvent) {
+    self.domain_events.push(event);
+  }
+
+  fn take_events(&mut self) -> Vec<BookEvent> {
     std::mem::take(&mut self.domain_events)
   }
 }

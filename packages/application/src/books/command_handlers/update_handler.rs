@@ -29,18 +29,11 @@ impl<T: BookService> UpdateBookCommandHandlerTrait
     let mut book = self
       .service
       .get_by_id(cmd.id)
-      .await
-      .map_err(|_| {
-        AppError::DatabaseError("Not able to fetch the Book".into())
-      })?
-      .ok_or_else(|| AppError::ValidationError("Book not found".into()))?;
+      .await?
+      .ok_or_else(|| AppError::NotFound(format!("Book {} not found", cmd.id)))?;
 
     book.apply_update(&cmd);
 
-    self
-      .service
-      .update(book)
-      .await
-      .map_err(|e| AppError::DatabaseError(e.to_string()))
+    self.service.update(book).await
   }
 }

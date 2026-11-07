@@ -32,10 +32,6 @@ impl<T: BookService> GetBookByIdQueryHandlerTrait
     &self,
     query: GetBookByIdQuery,
   ) -> Result<Option<Book>, AppError> {
-    self
-      .service
-      .get_by_id(query.id)
-      .await
-      .map_err(|e| AppError::DatabaseError(e.to_string()))
+    self.service.get_by_id(query.id).await
   }
 }

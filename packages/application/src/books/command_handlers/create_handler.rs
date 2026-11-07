@@ -37,10 +37,6 @@ impl<T: BookService> CreateBookCommandHandlerTrait
       domain_events: vec![],
     };
 
-    self
-      .service
-      .create(book)
-      .await
-      .map_err(|e| AppError::DatabaseError(e.to_string()))
+    self.service.create(book).await
   }
 }

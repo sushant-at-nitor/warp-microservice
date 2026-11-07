@@ -398,6 +398,7 @@ name = "common"
 version = "0.1.0"
 dependencies = [
  "serde",
+ "thiserror 1.0.69",
  "warp",
 ]
 
@@ -1172,6 +1173,7 @@ dependencies = [
  "common",
  "domain",
  "dotenvy",
+ "log",
  "sea-orm",
  "sea-orm-migration",
 ]
@@ -1945,7 +1947,7 @@ dependencies = [
  "serde_json",
  "sqlx",
  "strum",
- "thiserror",
+ "thiserror 2.0.17",
  "time",
  "tracing",
  "url",
@@ -2045,7 +2047,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.110",
- "thiserror",
+ "thiserror 2.0.17",
 ]
 
 [[package]]
@@ -2284,7 +2286,7 @@ dependencies = [
  "serde_json",
  "sha2",
  "smallvec",
- "thiserror",
+ "thiserror 2.0.17",
  "time",
  "tokio",
  "tokio-stream",
@@ -2372,7 +2374,7 @@ dependencies = [
  "smallvec",
  "sqlx-core",
  "stringprep",
- "thiserror",
+ "thiserror 2.0.17",
  "time",
  "tracing",
  "uuid",
@@ -2415,7 +2417,7 @@ dependencies = [
  "smallvec",
  "sqlx-core",
  "stringprep",
- "thiserror",
+ "thiserror 2.0.17",
  "time",
  "tracing",
  "uuid",
@@ -2442,7 +2444,7 @@ dependencies = [
  "serde",
  "serde_urlencoded",
  "sqlx-core",
- "thiserror",
+ "thiserror 2.0.17",
  "time",
  "tracing",
  "url",
@@ -2531,11 +2533,31 @@ checksum = "55937e1799185b12863d447f42597ed69d9928686b8d88a1df17376a097d8369"
 
 [[package]]
 name = "thiserror"
+version = "1.0.69"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b6aaf5339b578ea85b50e080feb250a3e8ae8cfcdff9a461c9ec2904bc923f52"
+dependencies = [
+ "thiserror-impl 1.0.69",
+]
+
+[[package]]
+name = "thiserror"
 version = "2.0.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f63587ca0f12b72a0600bcba1d40081f830876000bb46dd2337a3051618f4fc8"
 dependencies = [
- "thiserror-impl",
+ "thiserror-impl 2.0.17",
+]
+
+[[package]]
+name = "thiserror-impl"
+version = "1.0.69"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4fee6c4efc90059e10f81e6d42c60a18f76588c3d74cb83a0b242a2b6c7504c1"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.110",
 ]
 
 [[package]]

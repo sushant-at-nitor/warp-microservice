@@ -26,10 +26,6 @@ impl<T: BookService> GetAvailableBooksQueryHandlerTrait
   for GetAvailableBooksQueryHandler<T>
 {
   async fn handle(&self) -> Result<Vec<Book>, AppError> {
-    self
-      .service
-      .get_available()
-      .await
-      .map_err(|e| AppError::DatabaseError(e.to_string()))
+    self.service.get_available().await
   }
 }

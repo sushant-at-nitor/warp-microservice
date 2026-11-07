@@ -26,10 +26,6 @@ impl<T: BookService> SearchBooksQueryHandlerTrait
   for SearchBooksQueryHandler<T>
 {
   async fn handle(&self, query: BookQuery) -> Result<Vec<Book>, AppError> {
-    self
-      .service
-      .search(query)
-      .await
-      .map_err(|e| AppError::DatabaseError(e.to_string()))
+    self.service.search(query).await
   }
 }

@@ -32,10 +32,6 @@ impl<T: BookService> DeleteBookCommandHandlerTrait
     &self,
     cmd: DeleteBookCommand,
   ) -> Result<Option<i32>, AppError> {
-    self
-      .service
-      .delete(cmd.id)
-      .await
-      .map_err(|e| AppError::DatabaseError(e.to_string()))
+    self.service.delete(cmd.id).await
   }
 }
