@@ -13,14 +13,11 @@ pub fn route<T>(
 where
   T: BookService + Send + Sync + 'static,
 {
-  // PUT /books/{book_id}
-  let endpoint = warp::path!("books" / i32)
+  warp::path!("books" / i32)
     .and(warp::put())
     .and(with_handler(handler))
     .and(warp::body::json())
-    .and_then(handle_update_book);
-
-  endpoint
+    .and_then(handle_update_book)
 }
 
 fn with_handler<T>(

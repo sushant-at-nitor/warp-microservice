@@ -36,7 +36,7 @@ impl BookRepository {
       .all(&self.db)
       .await?;
 
-    let total_pages = (total + page_size - 1) / page_size;
+    let total_pages = total.div_ceil(page_size);
 
     Ok(Paged {
       items,

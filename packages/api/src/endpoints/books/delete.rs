@@ -13,13 +13,10 @@ pub fn route<T>(
 where
   T: BookService + Send + Sync + 'static,
 {
-  // DELETE /books
-  let endpoint = warp::path!("books" / i32)
+  warp::path!("books" / i32)
     .and(warp::delete())
     .and(with_handler(handler))
-    .and_then(handle_delete_book);
-
-  endpoint
+    .and_then(handle_delete_book)
 }
 
 fn with_handler<T>(
