@@ -21,7 +21,6 @@ use domain::{
   },
   queries::{BookQuery, GetAllBooksQuery, GetBookByIdQuery, ListBooks},
 };
-use sea_orm::DbErr;
 
 // ── Shared mock ──────────────────────────────────────────────────────────────
 
@@ -45,14 +44,14 @@ impl MockBookService {
 
 #[async_trait::async_trait]
 impl BookService for MockBookService {
-  async fn get_all(&self) -> Result<Vec<Book>, DbErr> {
+  async fn get_all(&self) -> Result<Vec<Book>, AppError> {
     Ok(vec![self.book.clone()])
   }
   async fn list(
     &self,
     page: u64,
     page_size: u64,
-  ) -> Result<Paged<Book>, DbErr> {
+  ) -> Result<Paged<Book>, AppError> {
     Ok(Paged {
       items: vec![self.book.clone()],
       total: 1,
@@ -61,26 +60,26 @@ impl BookService for MockBookService {
       total_pages: 1,
     })
   }
-  async fn get_by_id(&self, _id: i32) -> Result<Option<Book>, DbErr> {
+  async fn get_by_id(&self, _id: i32) -> Result<Option<Book>, AppError> {
     if self.get_by_id_returns_none {
       Ok(None)
     } else {
       Ok(Some(self.book.clone()))
     }
   }
-  async fn get_available(&self) -> Result<Vec<Book>, DbErr> {
+  async fn get_available(&self) -> Result<Vec<Book>, AppError> {
     Ok(vec![self.book.clone()])
   }
-  async fn search(&self, _query: BookQuery) -> Result<Vec<Book>, DbErr> {
+  async fn search(&self, _query: BookQuery) -> Result<Vec<Book>, AppError> {
     Ok(vec![self.book.clone()])
   }
-  async fn create(&self, book: Book) -> Result<Book, DbErr> {
+  async fn create(&self, book: Book) -> Result<Book, AppError> {
     Ok(book)
   }
-  async fn update(&self, book: Book) -> Result<Book, DbErr> {
+  async fn update(&self, book: Book) -> Result<Book, AppError> {
     Ok(book)
   }
-  async fn delete(&self, id: i32) -> Result<Option<i32>, DbErr> {
+  async fn delete(&self, id: i32) -> Result<Option<i32>, AppError> {
     Ok(Some(id))
   }
   async fn borrow_book(
@@ -170,7 +169,7 @@ async fn update_handler_returns_error_when_not_found() {
   };
   let result = handler.handle(cmd).await;
   assert!(result.is_err());
-  assert!(matches!(result.unwrap_err(), AppError::ValidationError(_)));
+  assert!(matches!(result.unwrap_err(), AppError::NotFound(_)));
 }
 
 #[tokio::test]

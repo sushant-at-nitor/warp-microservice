@@ -111,7 +111,7 @@ async fn update_book_returns_200() {
 }
 
 #[tokio::test]
-async fn update_book_returns_422_when_missing() {
+async fn update_book_returns_404_when_missing() {
   let filter = setup().await;
 
   let res = warp::test::request()
@@ -120,7 +120,7 @@ async fn update_book_returns_422_when_missing() {
     .json(&json!({ "title": "No Such Book" }))
     .reply(&filter)
     .await;
-  assert_eq!(res.status(), 422);
+  assert_eq!(res.status(), 404);
 }
 
 #[tokio::test]
