@@ -86,9 +86,14 @@ impl From<{pascal}> for {snake}::ActiveModel {{
     agg_to_active_fields = agg_to_active_fields
   );
 
-  // --- Repository stub ---
+  // --- Repository (full CRUD + paginated list) ---
   let repository = format!(
-    r#"use sea_orm::DatabaseConnection;
+    r#"use crate::entities::{snake};
+use common::Paged;
+use sea_orm::{{
+  ActiveModelTrait, DatabaseConnection, DbErr, DeleteResult,
+  EntityTrait, PaginatorTrait, QuerySelect,
+}};
 
 pub struct {pascal}Repository {{
   db: DatabaseConnection,
@@ -98,10 +103,54 @@ impl {pascal}Repository {{
   pub fn new(db: DatabaseConnection) -> Self {{
     Self {{ db }}
   }}
-  // TODO: implement find_all, find_by_id, insert, update, delete
+
+  pub async fn find_all(&self) -> Result<Vec<{snake}::Model>, DbErr> {{
+    {snake}::Entity::find().all(&self.db).await
+  }}
+
+  pub async fn list_{snake}(
+    &self,
+    page: u64,
+    page_size: u64,
+  ) -> Result<Paged<{snake}::Model>, DbErr> {{
+    let page = page.max(1);
+    let page_size = page_size.clamp(1, 100);
+    let offset = (page - 1) * page_size;
+    let total = {snake}::Entity::find().count(&self.db).await?;
+    let items = {snake}::Entity::find()
+      .offset(offset)
+      .limit(page_size)
+      .all(&self.db)
+      .await?;
+    let total_pages = total.div_ceil(page_size);
+    Ok(Paged {{ items, total, page, page_size, total_pages }})
+  }}
+
+  pub async fn find_by_id(&self, id: i32) -> Result<Option<{snake}::Model>, DbErr> {{
+    {snake}::Entity::find_by_id(id).one(&self.db).await
+  }}
+
+  pub async fn insert(
+    &self,
+    model: {snake}::ActiveModel,
+  ) -> Result<{snake}::Model, DbErr> {{
+    model.insert(&self.db).await
+  }}
+
+  pub async fn update(
+    &self,
+    model: {snake}::ActiveModel,
+  ) -> Result<{snake}::Model, DbErr> {{
+    model.update(&self.db).await
+  }}
+
+  pub async fn delete(&self, id: i32) -> Result<DeleteResult, DbErr> {{
+    {snake}::Entity::delete_by_id(id).exec(&self.db).await
+  }}
 }}
 "#,
-    pascal = pascal
+    pascal = pascal,
+    snake = snake
   );
 
   // --- Service impl stub ---
@@ -194,6 +243,22 @@ mod tests {
     )
     .unwrap();
     assert!(content.contains("pub struct MemberRepository"));
+    fs::remove_dir_all(&tmp).ok();
+  }
+
+  #[test]
+  fn generates_full_repository_with_all_crud_methods() {
+    let tmp = env::temp_dir().join("codegen_v2_infra_repo");
+    generate("member", &[], &tmp);
+    let content = fs::read_to_string(
+      tmp.join("packages/infrastructure/src/repositories/member_repository.rs"),
+    )
+    .unwrap();
+    for method in &["find_all", "find_by_id", "insert", "update", "delete", "list_member"] {
+      assert!(content.contains(method), "must contain method: {}", method);
+    }
+    assert!(content.contains("Paged"), "list must return Paged<T>");
+    assert!(content.contains("div_ceil"), "pagination must use div_ceil");
     fs::remove_dir_all(&tmp).ok();
   }
 
