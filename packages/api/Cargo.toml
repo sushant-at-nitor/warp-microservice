@@ -23,6 +23,7 @@ application = { path = "../application" }
 domain = { path = "../domain" }
 common = { path = "../common" }
 database = { path = "../database" }
+uuid = { workspace = true }
 
 [dev-dependencies]
 tokio = { workspace = true }
