@@ -23,3 +23,15 @@ pub struct UpdateBookCommand {
 pub struct DeleteBookCommand {
   pub id: i32,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BorrowBookCommand {
+  pub book_id: i32,
+  pub member_id: i32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReturnBookCommand {
+  pub book_id: i32,
+  pub member_id: i32,
+}

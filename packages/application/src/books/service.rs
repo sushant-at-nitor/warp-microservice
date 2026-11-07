@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use common::Paged;
+use common::{AppError, Paged};
 use domain::{aggregate::book::Book, queries::BookQuery};
 use sea_orm::DbErr;
 
@@ -14,4 +14,14 @@ pub trait BookService: Send + Sync {
   async fn create(&self, book: Book) -> Result<Book, DbErr>;
   async fn update(&self, book: Book) -> Result<Book, DbErr>;
   async fn delete(&self, id: i32) -> Result<Option<i32>, DbErr>;
+  async fn borrow_book(
+    &self,
+    book_id: i32,
+    member_id: i32,
+  ) -> Result<Book, AppError>;
+  async fn return_book(
+    &self,
+    book_id: i32,
+    member_id: i32,
+  ) -> Result<Book, AppError>;
 }

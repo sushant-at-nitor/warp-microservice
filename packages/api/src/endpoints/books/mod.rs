@@ -1,9 +1,11 @@
+mod borrow;
 mod create;
 mod delete;
 mod get_all;
 mod get_available;
 mod get_by_id;
 mod list;
+mod return_book;
 mod search;
 mod update;
 
@@ -11,10 +13,10 @@ use std::sync::Arc;
 use warp::Filter;
 
 use application::books::{
-  CreateBookCommandHandler, DeleteBookCommandHandler,
+  BorrowBookCommandHandler, CreateBookCommandHandler, DeleteBookCommandHandler,
   GetAllBooksQueryHandler, GetAvailableBooksQueryHandler,
-  GetBookByIdQueryHandler, ListBooksQueryHandler, SearchBooksQueryHandler,
-  UpdateBookCommandHandler,
+  GetBookByIdQueryHandler, ListBooksQueryHandler, ReturnBookCommandHandler,
+  SearchBooksQueryHandler, UpdateBookCommandHandler,
 };
 use infrastructure::{
   repositories::book_repository::BookRepository,
@@ -43,6 +45,10 @@ pub fn register(
     Arc::new(GetAvailableBooksQueryHandler::new(service.clone()));
   let search_handler =
     Arc::new(SearchBooksQueryHandler::new(service.clone()));
+  let borrow_handler =
+    Arc::new(BorrowBookCommandHandler::new(service.clone()));
+  let return_handler =
+    Arc::new(ReturnBookCommandHandler::new(service.clone()));
 
   let create = create::route(create_handler);
   let update = update::route(update_handler);
@@ -52,6 +58,8 @@ pub fn register(
   let get_by_id = get_by_id::route(get_by_id_handler);
   let get_available = get_available::route(get_available_handler);
   let search = search::route(search_handler);
+  let borrow = borrow::route(borrow_handler);
+  let return_book = return_book::route(return_handler);
 
   create
     .or(update)
@@ -61,4 +69,6 @@ pub fn register(
     .or(get_by_id)
     .or(get_available)
     .or(search)
+    .or(borrow)
+    .or(return_book)
 }

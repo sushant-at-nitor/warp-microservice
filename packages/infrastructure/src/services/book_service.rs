@@ -1,7 +1,7 @@
 use crate::repositories::book_repository::BookRepository;
 use application::books::BookService;
 use async_trait::async_trait;
-use common::Paged;
+use common::{AppError, Paged};
 use domain::{aggregate::book::Book, queries::BookQuery};
 use sea_orm::DbErr;
 
@@ -66,5 +66,58 @@ impl BookService for BookServiceImpl {
   async fn delete(&self, id: i32) -> Result<Option<i32>, DbErr> {
     self.repo.delete(id).await?;
     Ok(Some(id))
+  }
+
+  async fn borrow_book(
+    &self,
+    book_id: i32,
+    member_id: i32,
+  ) -> Result<Book, AppError> {
+    let model = self
+      .repo
+      .find_by_id(book_id)
+      .await
+      .map_err(|e| AppError::DatabaseError(e.to_string()))?
+      .ok_or_else(|| {
+        AppError::NotFound(format!("Book {} not found", book_id))
+      })?;
+
+    let mut book: Book = model.into();
+
+    book
+      .borrow_copy(member_id)
+      .map_err(|msg| AppError::ValidationError(msg.to_string()))?;
+
+    self
+      .repo
+      .update(book.into())
+      .await
+      .map(|m| m.into())
+      .map_err(|e| AppError::DatabaseError(e.to_string()))
+  }
+
+  async fn return_book(
+    &self,
+    book_id: i32,
+    member_id: i32,
+  ) -> Result<Book, AppError> {
+    let model = self
+      .repo
+      .find_by_id(book_id)
+      .await
+      .map_err(|e| AppError::DatabaseError(e.to_string()))?
+      .ok_or_else(|| {
+        AppError::NotFound(format!("Book {} not found", book_id))
+      })?;
+
+    let mut book: Book = model.into();
+    book.return_copy(member_id);
+
+    self
+      .repo
+      .update(book.into())
+      .await
+      .map(|m| m.into())
+      .map_err(|e| AppError::DatabaseError(e.to_string()))
   }
 }
