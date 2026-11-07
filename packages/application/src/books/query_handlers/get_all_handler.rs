@@ -29,10 +29,6 @@ impl<T: BookService> GetAllBooksQueryHandlerTrait
   for GetAllBooksQueryHandler<T>
 {
   async fn handle(&self, _: GetAllBooksQuery) -> Result<Vec<Book>, AppError> {
-    self
-      .service
-      .get_all()
-      .await
-      .map_err(|e| AppError::DatabaseError(e.to_string()))
+    self.service.get_all().await
   }
 }

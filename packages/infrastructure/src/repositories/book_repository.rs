@@ -36,7 +36,7 @@ impl BookRepository {
       .all(&self.db)
       .await?;
 
-    let total_pages = (total + page_size - 1) / page_size;
+    let total_pages = total.div_ceil(page_size);
 
     Ok(Paged {
       items,
@@ -74,19 +74,6 @@ impl BookRepository {
       .add_option(query.name.map(|v| Column::Title.contains(v)))
       .add_option(query.author.map(|v| Column::Author.contains(v)))
       .add_option(query.isbn.map(|v| Column::Isbn.eq(v)));
-
-    // if let Some(year) = query.year {
-    //   condition = condition.add(Column::PublishedYear.eq(year));
-    // }
-    // if let Some(name) = query.name {
-    //   condition = condition.add(Column::Title.contains(name));
-    // }
-    // if let Some(author) = query.author {
-    //   condition = condition.add(Column::Author.contains(author));
-    // }
-    // if let Some(isbn) = query.isbn {
-    //   condition = condition.add(Column::Isbn.eq(isbn));
-    // }
 
     let result = book::Entity::find().filter(condition).all(&self.db).await?;
 

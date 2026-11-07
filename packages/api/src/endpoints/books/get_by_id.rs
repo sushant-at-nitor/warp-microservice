@@ -1,4 +1,4 @@
-use common::server_error::ServerError;
+use crate::errors::ApiError;
 use std::sync::Arc;
 use warp::Filter;
 
@@ -43,10 +43,12 @@ where
     Ok(book) => match book {
       Some(book) => Ok(warp::reply::json(&book)),
       None => {
-        // return 404
-        Err(warp::reject::not_found())
+        Err(warp::reject::custom(ApiError::NotFound(format!(
+          "Book {} not found",
+          id
+        ))))
       }
     },
-    Err(_) => Err(warp::reject::custom(ServerError)),
+    Err(e) => Err(warp::reject::custom(ApiError::from(e))),
   }
 }

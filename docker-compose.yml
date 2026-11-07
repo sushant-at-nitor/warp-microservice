@@ -4,9 +4,9 @@ services:
   db:
     image: postgres:16
     environment:
-      POSTGRES_USER: websignal
-      POSTGRES_PASSWORD: websignal
-      POSTGRES_DB: websignal
+      POSTGRES_USER: bookstore
+      POSTGRES_PASSWORD: books1234
+      POSTGRES_DB: bookstore
     ports:
       - "5432:5432"
     volumes:
@@ -17,7 +17,7 @@ services:
       context: ./packages/api
       dockerfile: Dockerfile
     environment:
-      DATABASE_URL: postgres://websignal:websignal@db:5432/websignal
+      DATABASE_URL: postgres://bookstore:books1234@db:5432/bookstore
       # Add other environment variables as needed
     ports:
       - "8080:8080"

@@ -26,44 +26,14 @@ impl<T: BookService> UpdateBookCommandHandlerTrait
   for UpdateBookCommandHandler<T>
 {
   async fn handle(&self, cmd: UpdateBookCommand) -> Result<Book, AppError> {
-    // let record = self.service.get_by_id(cmd.id).await.map_err(|_| {
-    //   AppError::DatabaseError("Not able to fetch the Book".into())
-    // })?;
-
-    // let book = record
-    //   .ok_or_else(|| AppError::ValidationError("Book not found".into()))?;
-
     let mut book = self
       .service
       .get_by_id(cmd.id)
-      .await
-      .map_err(|_| {
-        AppError::DatabaseError("Not able to fetch the Book".into())
-      })?
-      .ok_or_else(|| AppError::ValidationError("Book not found".into()))?;
+      .await?
+      .ok_or_else(|| AppError::NotFound(format!("Book {} not found", cmd.id)))?;
 
     book.apply_update(&cmd);
 
-    self
-      .service
-      .update(book)
-      .await
-      .map_err(|e| AppError::DatabaseError(e.to_string()))
-
-    // let result = self.service.get_by_id(cmd.id).await;
-
-    // match result {
-    //   Ok(record) => match record {
-    //     Some(book) => self
-    //       .service
-    //       .update(book)
-    //       .await
-    //       .map_err(|e| AppError::DatabaseError(e.to_string())),
-    //     None => Err(AppError::ValidationError("Book not found".into())),
-    //   },
-    //   Err(_) => {
-    //     Err(AppError::DatabaseError("Not able to fetch the Book".into()))
-    //   }
-    // }
+    self.service.update(book).await
   }
 }

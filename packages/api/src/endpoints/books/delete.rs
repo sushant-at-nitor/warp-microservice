@@ -1,4 +1,4 @@
-use common::server_error::ServerError;
+use crate::errors::ApiError;
 use std::sync::Arc;
 use warp::Filter;
 
@@ -13,13 +13,10 @@ pub fn route<T>(
 where
   T: BookService + Send + Sync + 'static,
 {
-  // DELETE /books
-  let endpoint = warp::path!("books" / i32)
+  warp::path!("books" / i32)
     .and(warp::delete())
     .and(with_handler(handler))
-    .and_then(handle_create_book);
-
-  endpoint
+    .and_then(handle_delete_book)
 }
 
 fn with_handler<T>(
@@ -34,7 +31,7 @@ where
   warp::any().map(move || handler.clone())
 }
 
-async fn handle_create_book<T>(
+async fn handle_delete_book<T>(
   id: i32,
   handler: Arc<DeleteBookCommandHandler<T>>,
 ) -> Result<impl warp::Reply, warp::Rejection>
@@ -45,10 +42,12 @@ where
     Ok(book) => match book {
       Some(book) => Ok(warp::reply::json(&book)),
       None => {
-        // return 404
-        Err(warp::reject::not_found())
+        Err(warp::reject::custom(ApiError::NotFound(format!(
+          "Book {} not found",
+          id
+        ))))
       }
     },
-    Err(_) => Err(warp::reject::custom(ServerError)),
+    Err(e) => Err(warp::reject::custom(ApiError::from(e))),
   }
 }

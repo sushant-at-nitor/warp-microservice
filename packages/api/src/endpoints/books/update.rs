@@ -1,4 +1,4 @@
-use common::server_error::ServerError;
+use crate::errors::ApiError;
 use std::sync::Arc;
 use warp::Filter;
 
@@ -13,14 +13,11 @@ pub fn route<T>(
 where
   T: BookService + Send + Sync + 'static,
 {
-  // PUT /books/{book_id}
-  let endpoint = warp::path!("books" / i32)
+  warp::path!("books" / i32)
     .and(warp::put())
     .and(with_handler(handler))
     .and(warp::body::json())
-    .and_then(handle_update_book);
-
-  endpoint
+    .and_then(handle_update_book)
 }
 
 fn with_handler<T>(
@@ -47,6 +44,6 @@ where
 
   match handler.handle(cmd).await {
     Ok(book) => Ok(warp::reply::json(&book)),
-    Err(_) => Err(warp::reject::custom(ServerError)),
+    Err(e) => Err(warp::reject::custom(ApiError::from(e))),
   }
 }

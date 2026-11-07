@@ -24,10 +24,6 @@ impl<T: BookService> ListBooksQueryHandler<T> {
 #[async_trait]
 impl<T: BookService> ListBooksQueryHandlerTrait for ListBooksQueryHandler<T> {
   async fn handle(&self, pager: ListBooks) -> Result<Paged<Book>, AppError> {
-    self
-      .service
-      .list(pager.page.unwrap_or(1), pager.page_size.unwrap_or(10))
-      .await
-      .map_err(|e| AppError::DatabaseError(e.to_string()))
+    self.service.list(pager.page.unwrap_or(1), pager.page_size.unwrap_or(10)).await
   }
 }

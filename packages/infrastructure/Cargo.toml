@@ -11,4 +11,5 @@ sea-orm-migration = { workspace = true }
 application = { path = "../application" }
 domain = { path = "../domain" }
 common = { path = "../common" }
+log = { workspace = true }
 

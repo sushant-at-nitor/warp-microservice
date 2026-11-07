@@ -1,30 +1,36 @@
-pub mod endpoints;
-pub mod startup;
-
+use api::{config::Config, endpoints, startup};
 use env_logger::Env;
 use log::info;
-use std::sync::Arc;
+use std::{net::SocketAddr, sync::Arc};
 
 #[tokio::main]
 async fn main() {
-  // Load .env file
   dotenvy::dotenv().ok();
 
-  env_logger::Builder::from_env(Env::default().default_filter_or("info"))
+  let cfg = Config::from_env();
+
+  env_logger::Builder::from_env(Env::default().default_filter_or(&cfg.rust_log))
     .init();
 
-  info!(
-    "Logger initialized with RUST_LOG={}",
-    std::env::var("RUST_LOG").unwrap_or_default()
-  );
+  info!("Config loaded: port={}, log={}", cfg.port, cfg.rust_log);
 
   let state = startup::build_app_state().await;
   let api = endpoints::register(Arc::new(state));
 
-  let port = std::env::var("PORT").unwrap_or_else(|_| "3030".to_string());
-  info!("🚀 API running at http://localhost:{}", &port);
+  let addr: SocketAddr = ([0, 0, 0, 0], cfg.port).into();
+  info!("🚀 API running at http://localhost:{}", cfg.port);
 
   warp::serve(api)
-    .run(([127, 0, 0, 1], port.parse().unwrap_or(3030)))
+    .bind(addr)
+    .await
+    .graceful(async {
+      tokio::signal::ctrl_c()
+        .await
+        .expect("failed to install Ctrl+C handler");
+      info!("Shutdown signal received — draining connections");
+    })
+    .run()
     .await;
+
+  info!("Server stopped.");
 }

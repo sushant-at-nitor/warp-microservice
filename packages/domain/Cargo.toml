@@ -6,4 +6,5 @@ edition = "2024"
 [dependencies]
 chrono = { workspace = true }
 serde = { workspace = true }
+utoipa = { workspace = true }
 common = { path = "../common" }
