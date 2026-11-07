@@ -17,6 +17,22 @@ pub fn generate(entity: &str, fields: &[FieldDef], output_dir: &Path) {
       .collect()
   };
 
+  // new() constructor params and body assignments
+  let new_params: String = {
+    let mut p = "id: i32".to_string();
+    for f in fields {
+      p.push_str(&format!(", {}: {}", f.name, f.ty.rust_type(f.nullable)));
+    }
+    p
+  };
+  let new_assignments: String = {
+    let mut a = "id".to_string();
+    for f in fields {
+      a.push_str(&format!(", {}", f.name));
+    }
+    a
+  };
+
   // fields for CreateCommand — always non-optional (required at creation)
   let create_fields: String = if fields.is_empty() {
     "  // TODO: add fields\n".into()
@@ -46,13 +62,15 @@ pub struct {pascal} {{
 {struct_fields}}}
 
 impl {pascal} {{
-  pub fn new(id: i32) -> Self {{
-    Self {{ id }}
+  pub fn new({new_params}) -> Self {{
+    Self {{ {new_assignments} }}
   }}
 }}
 "#,
     pascal = pascal,
-    struct_fields = struct_fields
+    struct_fields = struct_fields,
+    new_params = new_params,
+    new_assignments = new_assignments
   );
 
   let commands = format!(
@@ -159,6 +177,33 @@ mod tests {
       fs::read_to_string(tmp.join("packages/domain/src/queries/member.rs")).unwrap();
     assert!(content.contains("pub struct GetAllMemberQuery"));
     fs::remove_dir_all(&tmp).ok();
+  }
+
+  #[test]
+  fn new_constructor_includes_all_fields() {
+    use crate::field_def::{FieldDef, FieldType};
+    let tmp = std::env::temp_dir().join("codegen_v2_domain_new");
+    let fields = vec![
+      FieldDef { name: "name".into(), ty: FieldType::Str, unique: false, nullable: false },
+      FieldDef { name: "age".into(), ty: FieldType::I32, unique: false, nullable: true },
+    ];
+    generate("player", &fields, &tmp);
+    let content =
+      std::fs::read_to_string(tmp.join("packages/domain/src/aggregate/player.rs")).unwrap();
+    assert!(content.contains("pub fn new(id: i32, name: String, age: Option<i32>)"), "new() params wrong");
+    assert!(content.contains("Self { id, name, age }"), "new() body wrong");
+    std::fs::remove_dir_all(&tmp).ok();
+  }
+
+  #[test]
+  fn new_constructor_no_fields_has_only_id() {
+    let tmp = std::env::temp_dir().join("codegen_v2_domain_new_empty");
+    generate("thing", &[], &tmp);
+    let content =
+      std::fs::read_to_string(tmp.join("packages/domain/src/aggregate/thing.rs")).unwrap();
+    assert!(content.contains("pub fn new(id: i32)"), "no-field new() should only have id");
+    assert!(content.contains("Self { id }"), "no-field new() body wrong");
+    std::fs::remove_dir_all(&tmp).ok();
   }
 
   #[test]
