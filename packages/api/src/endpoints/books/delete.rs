@@ -45,8 +45,10 @@ where
     Ok(book) => match book {
       Some(book) => Ok(warp::reply::json(&book)),
       None => {
-        // return 404
-        Err(warp::reject::not_found())
+        Err(warp::reject::custom(ApiError::NotFound(format!(
+          "Book {} not found",
+          id
+        ))))
       }
     },
     Err(e) => Err(warp::reject::custom(ApiError::from(e))),

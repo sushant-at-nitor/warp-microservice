@@ -20,7 +20,11 @@ impl From<book::Model> for BookAggregate {
 impl From<BookAggregate> for book::ActiveModel {
   fn from(book: BookAggregate) -> Self {
     book::ActiveModel {
-      id: ActiveValue::not_set(), // auto increment
+      id: if book.id == 0 {
+        ActiveValue::not_set()
+      } else {
+        ActiveValue::Set(book.id)
+      },
       title: ActiveValue::Set(book.title),
       author: ActiveValue::Set(book.author),
       isbn: ActiveValue::Set(book.isbn),

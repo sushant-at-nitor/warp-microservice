@@ -1,15 +1,10 @@
-pub mod endpoints;
-pub mod errors;
-pub mod rejection;
-pub mod startup;
-
+use api::{endpoints, startup};
 use env_logger::Env;
 use log::info;
 use std::sync::Arc;
 
 #[tokio::main]
 async fn main() {
-  // Load .env file
   dotenvy::dotenv().ok();
 
   env_logger::Builder::from_env(Env::default().default_filter_or("info"))

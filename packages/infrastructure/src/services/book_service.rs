@@ -64,8 +64,12 @@ impl BookService for BookServiceImpl {
   }
 
   async fn delete(&self, id: i32) -> Result<Option<i32>, DbErr> {
-    self.repo.delete(id).await?;
-    Ok(Some(id))
+    let result = self.repo.delete(id).await?;
+    if result.rows_affected == 0 {
+      Ok(None)
+    } else {
+      Ok(Some(id))
+    }
   }
 
   async fn borrow_book(

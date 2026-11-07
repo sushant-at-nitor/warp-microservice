@@ -11,6 +11,7 @@ pub struct CreateBookCommand {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UpdateBookCommand {
+  #[serde(default)]
   pub id: i32,
   pub title: Option<String>,
   pub author: Option<String>,
