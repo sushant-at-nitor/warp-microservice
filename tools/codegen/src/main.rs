@@ -38,7 +38,7 @@ fn main() {
 
   println!("Generating scaffold for: {}", entity);
 
-  domain_generator::generate(entity, output_dir);
+  domain_generator::generate(entity, &fields, output_dir);
   app_generator::generate(entity, output_dir);
   infra_generator::generate(entity, output_dir);
   api_generator::generate(entity, output_dir);
