@@ -7,3 +7,4 @@ edition = "2024"
 warp = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
+utoipa = { workspace = true }

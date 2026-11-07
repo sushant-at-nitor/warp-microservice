@@ -1,4 +1,4 @@
-use domain::aggregate::book::Book;
+use domain::aggregate::{book::Book, member::Member};
 use utoipa::OpenApi;
 use warp::Filter;
 
@@ -9,9 +9,10 @@ use warp::Filter;
     version = env!("CARGO_PKG_VERSION"),
     description = "Library management API"
   ),
-  components(schemas(Book)),
+  components(schemas(Book, Member)),
   tags(
     (name = "books", description = "Book management"),
+    (name = "members", description = "Member management"),
     (name = "health", description = "Health check")
   )
 )]
