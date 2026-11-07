@@ -1,11 +1,92 @@
 use std::{fs, path::Path};
 
+use crate::field_def::FieldDef;
 use crate::helpers::{to_pascal_case, to_snake_case};
 
-pub fn generate(entity: &str, output_dir: &Path) {
+pub fn generate(entity: &str, fields: &[FieldDef], output_dir: &Path) {
   let pascal = to_pascal_case(entity);
   let snake = to_snake_case(&pascal);
 
+  // --- Entity file ---
+  let model_fields: String = if fields.is_empty() {
+    "  // TODO: add fields\n".into()
+  } else {
+    fields
+      .iter()
+      .map(|f| format!("  pub {}: {},\n", f.name, f.ty.rust_type(f.nullable)))
+      .collect()
+  };
+
+  let entity_content = format!(
+    r#"use sea_orm::entity::prelude::*;
+
+#[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
+#[sea_orm(table_name = "{snake}s")]
+pub struct Model {{
+  #[sea_orm(primary_key)]
+  pub id: i32,
+{model_fields}}}
+
+#[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
+pub enum Relation {{}}
+
+impl ActiveModelBehavior for ActiveModel {{}}
+"#,
+    snake = snake,
+    model_fields = model_fields
+  );
+
+  // --- Mapper file ---
+  let model_to_agg_fields: String = if fields.is_empty() {
+    "      // TODO: map fields\n".into()
+  } else {
+    fields
+      .iter()
+      .map(|f| format!("      {}: model.{},\n", f.name, f.name))
+      .collect()
+  };
+
+  let agg_to_active_fields: String = if fields.is_empty() {
+    "      // TODO: set active model fields\n".into()
+  } else {
+    fields
+      .iter()
+      .map(|f| format!("      {}: ActiveValue::Set(item.{}),\n", f.name, f.name))
+      .collect()
+  };
+
+  let mapper_content = format!(
+    r#"use crate::entities::{snake};
+use domain::aggregate::{snake}::{pascal};
+use sea_orm::ActiveValue;
+
+impl From<{snake}::Model> for {pascal} {{
+  fn from(model: {snake}::Model) -> Self {{
+    {pascal} {{
+      id: model.id,
+{model_to_agg_fields}    }}
+  }}
+}}
+
+impl From<{pascal}> for {snake}::ActiveModel {{
+  fn from(item: {pascal}) -> Self {{
+    {snake}::ActiveModel {{
+      id: if item.id == 0 {{
+        ActiveValue::not_set()
+      }} else {{
+        ActiveValue::Set(item.id)
+      }},
+{agg_to_active_fields}    }}
+  }}
+}}
+"#,
+    snake = snake,
+    pascal = pascal,
+    model_to_agg_fields = model_to_agg_fields,
+    agg_to_active_fields = agg_to_active_fields
+  );
+
+  // --- Repository stub ---
   let repository = format!(
     r#"use sea_orm::DatabaseConnection;
 
@@ -23,6 +104,7 @@ impl {pascal}Repository {{
     pascal = pascal
   );
 
+  // --- Service impl stub ---
   let service_impl = format!(
     r#"use crate::repositories::{snake}_repository::{pascal}Repository;
 use application::{snake}::{pascal}Service;
@@ -55,12 +137,19 @@ impl {pascal}Service for {pascal}ServiceImpl {{
     snake = snake
   );
 
+  // --- Write all files ---
+  let entity_dir = output_dir.join("packages/infrastructure/src/entities");
+  let mapper_dir = output_dir.join("packages/infrastructure/src/mappers");
   let repo_dir = output_dir.join("packages/infrastructure/src/repositories");
   let svc_dir = output_dir.join("packages/infrastructure/src/services");
 
+  fs::create_dir_all(&entity_dir).unwrap();
+  fs::create_dir_all(&mapper_dir).unwrap();
   fs::create_dir_all(&repo_dir).unwrap();
   fs::create_dir_all(&svc_dir).unwrap();
 
+  fs::write(entity_dir.join(format!("{}.rs", snake)), entity_content).unwrap();
+  fs::write(mapper_dir.join(format!("{}.rs", snake)), mapper_content).unwrap();
   fs::write(
     repo_dir.join(format!("{}_repository.rs", snake)),
     repository,
@@ -72,6 +161,14 @@ impl {pascal}Service for {pascal}ServiceImpl {{
   )
   .unwrap();
 
+  println!(
+    "  [infra] packages/infrastructure/src/entities/{snake}.rs",
+    snake = snake
+  );
+  println!(
+    "  [infra] packages/infrastructure/src/mappers/{snake}.rs",
+    snake = snake
+  );
   println!(
     "  [infra] packages/infrastructure/src/repositories/{snake}_repository.rs",
     snake = snake
@@ -90,7 +187,7 @@ mod tests {
   #[test]
   fn generates_repository() {
     let tmp = env::temp_dir().join("codegen_test_infra");
-    generate("member", &tmp);
+    generate("member", &[], &tmp);
     let content = fs::read_to_string(
       tmp
         .join("packages/infrastructure/src/repositories/member_repository.rs"),
@@ -98,5 +195,41 @@ mod tests {
     .unwrap();
     assert!(content.contains("pub struct MemberRepository"));
     fs::remove_dir_all(&tmp).ok();
+  }
+
+  #[test]
+  fn generates_seaorm_entity_with_model_fields() {
+    use crate::field_def::{FieldDef, FieldType};
+    let tmp = std::env::temp_dir().join("codegen_v2_infra_entity");
+    let fields = vec![
+      FieldDef { name: "username".into(), ty: FieldType::Str, unique: false, nullable: false },
+      FieldDef { name: "score".into(),    ty: FieldType::I32, unique: false, nullable: true  },
+    ];
+    generate("member", &fields, &tmp);
+    let content = std::fs::read_to_string(
+      tmp.join("packages/infrastructure/src/entities/member.rs")
+    ).unwrap();
+    assert!(content.contains("DeriveEntityModel"), "must derive DeriveEntityModel");
+    assert!(content.contains("pub username: String"), "must have username field");
+    assert!(content.contains("pub score: Option<i32>"), "nullable field must be Option");
+    std::fs::remove_dir_all(&tmp).ok();
+  }
+
+  #[test]
+  fn generates_mapper_with_both_from_impls() {
+    use crate::field_def::{FieldDef, FieldType};
+    let tmp = std::env::temp_dir().join("codegen_v2_infra_mapper");
+    let fields = vec![
+      FieldDef { name: "username".into(), ty: FieldType::Str, unique: false, nullable: false },
+    ];
+    generate("member", &fields, &tmp);
+    let content = std::fs::read_to_string(
+      tmp.join("packages/infrastructure/src/mappers/member.rs")
+    ).unwrap();
+    assert!(content.contains("impl From<member::Model> for Member"), "must have Model->Aggregate impl");
+    assert!(content.contains("impl From<Member> for member::ActiveModel"), "must have Aggregate->ActiveModel impl");
+    assert!(content.contains("not_set()"), "id==0 must use not_set()");
+    assert!(content.contains("ActiveValue::Set(item.username)"), "field must be wrapped in Set");
+    std::fs::remove_dir_all(&tmp).ok();
   }
 }
