@@ -6,3 +6,7 @@ edition = "2024"
 [[bin]]
 name = "codegen"
 path = "src/main.rs"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+chrono = "0.4"
