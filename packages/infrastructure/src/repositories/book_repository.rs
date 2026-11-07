@@ -75,19 +75,6 @@ impl BookRepository {
       .add_option(query.author.map(|v| Column::Author.contains(v)))
       .add_option(query.isbn.map(|v| Column::Isbn.eq(v)));
 
-    // if let Some(year) = query.year {
-    //   condition = condition.add(Column::PublishedYear.eq(year));
-    // }
-    // if let Some(name) = query.name {
-    //   condition = condition.add(Column::Title.contains(name));
-    // }
-    // if let Some(author) = query.author {
-    //   condition = condition.add(Column::Author.contains(author));
-    // }
-    // if let Some(isbn) = query.isbn {
-    //   condition = condition.add(Column::Isbn.eq(isbn));
-    // }
-
     let result = book::Entity::find().filter(condition).all(&self.db).await?;
 
     Ok(result)

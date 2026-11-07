@@ -12,8 +12,6 @@ impl Database {
   pub async fn connect() -> Result<Self, DbErr> {
     dotenv().ok();
 
-    println!("db url: {:?}", env::var("DATABASE_URL").unwrap());
-
     let db_url = env::var("DATABASE_URL")
       .unwrap_or_else(|_| "sqlite://book_lending.db?mode=rwc".to_string());
 

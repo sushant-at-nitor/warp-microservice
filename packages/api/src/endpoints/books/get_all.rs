@@ -44,6 +44,6 @@ where
   let query = GetAllBooksQuery;
   match handler.handle(query).await {
     Ok(books) => Ok(warp::reply::json(&books)),
-    Err(err) => Err(warp::reject::custom(ServerError)),
+    Err(_) => Err(warp::reject::custom(ServerError)),
   }
 }

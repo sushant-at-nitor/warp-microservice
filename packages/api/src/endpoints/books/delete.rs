@@ -17,7 +17,7 @@ where
   let endpoint = warp::path!("books" / i32)
     .and(warp::delete())
     .and(with_handler(handler))
-    .and_then(handle_create_book);
+    .and_then(handle_delete_book);
 
   endpoint
 }
@@ -34,7 +34,7 @@ where
   warp::any().map(move || handler.clone())
 }
 
-async fn handle_create_book<T>(
+async fn handle_delete_book<T>(
   id: i32,
   handler: Arc<DeleteBookCommandHandler<T>>,
 ) -> Result<impl warp::Reply, warp::Rejection>

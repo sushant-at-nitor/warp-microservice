@@ -9,7 +9,7 @@ impl From<book::Model> for BookAggregate {
       title: model.title,
       author: model.author,
       isbn: model.isbn,
-      available_copies: model.total_copies,
+      available_copies: model.available_copies,
       total_copies: model.total_copies,
       published_year: model.published_year,
       domain_events: vec![], // DB doesn’t store domain events

@@ -25,6 +25,6 @@ async fn main() {
   info!("🚀 API running at http://localhost:{}", &port);
 
   warp::serve(api)
-    .run(([127, 0, 0, 1], port.parse().unwrap_or(3030)))
+    .run(([0, 0, 0, 0], port.parse().unwrap_or(3030)))
     .await;
 }

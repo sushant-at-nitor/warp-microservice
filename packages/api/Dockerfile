@@ -4,8 +4,8 @@ FROM rust:1.77 as builder
 WORKDIR /app
 
 # Copy workspace files
-COPY ../../Cargo.toml ../../Cargo.lock ./
-COPY ../../packages ./packages
+COPY Cargo.toml Cargo.lock ./
+COPY packages/ packages/
 
 # Build only the api package in release mode
 RUN cargo build -p api --release
