@@ -3,6 +3,7 @@ mod app_generator;
 mod domain_generator;
 mod field_def;
 mod helpers;
+mod type_map;
 mod infra_generator;
 
 use std::path::Path;
