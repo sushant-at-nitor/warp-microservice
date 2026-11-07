@@ -153,14 +153,13 @@ impl {pascal}Repository {{
     snake = snake
   );
 
-  // --- Service impl stub ---
+  // --- Service impl (full, uniform AppError) ---
   let service_impl = format!(
     r#"use crate::repositories::{snake}_repository::{pascal}Repository;
 use application::{snake}::{pascal}Service;
 use async_trait::async_trait;
 use common::{{AppError, Paged}};
 use domain::aggregate::{snake}::{pascal};
-use sea_orm::DbErr;
 
 pub struct {pascal}ServiceImpl {{
   repo: {pascal}Repository,
@@ -174,12 +173,47 @@ impl {pascal}ServiceImpl {{
 
 #[async_trait]
 impl {pascal}Service for {pascal}ServiceImpl {{
-  async fn get_all(&self) -> Result<Vec<{pascal}>, DbErr> {{ todo!() }}
-  async fn list(&self, _page: u64, _page_size: u64) -> Result<Paged<{pascal}>, DbErr> {{ todo!() }}
-  async fn get_by_id(&self, _id: i32) -> Result<Option<{pascal}>, DbErr> {{ todo!() }}
-  async fn create(&self, item: {pascal}) -> Result<{pascal}, DbErr> {{ todo!() }}
-  async fn update(&self, item: {pascal}) -> Result<{pascal}, DbErr> {{ todo!() }}
-  async fn delete(&self, _id: i32) -> Result<Option<i32>, DbErr> {{ todo!() }}
+  async fn get_all(&self) -> Result<Vec<{pascal}>, AppError> {{
+    self.repo.find_all().await
+      .map(|items| items.into_iter().map(Into::into).collect())
+      .map_err(|e| AppError::DatabaseError(e.to_string()))
+  }}
+
+  async fn get_by_id(&self, id: i32) -> Result<Option<{pascal}>, AppError> {{
+    self.repo.find_by_id(id).await
+      .map(|opt| opt.map(Into::into))
+      .map_err(|e| AppError::DatabaseError(e.to_string()))
+  }}
+
+  async fn list(&self, page: u64, page_size: u64) -> Result<Paged<{pascal}>, AppError> {{
+    let p = self.repo.list_{snake}(page, page_size).await
+      .map_err(|e| AppError::DatabaseError(e.to_string()))?;
+    Ok(Paged {{
+      items: p.items.into_iter().map(Into::into).collect(),
+      total: p.total,
+      page: p.page,
+      page_size: p.page_size,
+      total_pages: p.total_pages,
+    }})
+  }}
+
+  async fn create(&self, item: {pascal}) -> Result<{pascal}, AppError> {{
+    self.repo.insert(item.into()).await
+      .map(Into::into)
+      .map_err(|e| AppError::DatabaseError(e.to_string()))
+  }}
+
+  async fn update(&self, item: {pascal}) -> Result<{pascal}, AppError> {{
+    self.repo.update(item.into()).await
+      .map(Into::into)
+      .map_err(|e| AppError::DatabaseError(e.to_string()))
+  }}
+
+  async fn delete(&self, id: i32) -> Result<Option<i32>, AppError> {{
+    let result = self.repo.delete(id).await
+      .map_err(|e| AppError::DatabaseError(e.to_string()))?;
+    Ok(if result.rows_affected == 0 {{ None }} else {{ Some(id) }})
+  }}
 }}
 "#,
     pascal = pascal,
@@ -243,6 +277,26 @@ mod tests {
     )
     .unwrap();
     assert!(content.contains("pub struct MemberRepository"));
+    fs::remove_dir_all(&tmp).ok();
+  }
+
+  #[test]
+  fn generates_service_impl_with_app_error() {
+    let tmp = env::temp_dir().join("codegen_v2_infra_svc");
+    generate("member", &[], &tmp);
+    let content = fs::read_to_string(
+      tmp.join("packages/infrastructure/src/services/member_service.rs"),
+    )
+    .unwrap();
+    assert!(
+      content.contains("impl MemberService for MemberServiceImpl"),
+      "must impl trait"
+    );
+    assert!(content.contains("AppError"), "must use AppError");
+    assert!(!content.contains("todo!()"), "service impl must not have todo!()");
+    for method in &["get_all", "get_by_id", "list", "create", "update", "delete"] {
+      assert!(content.contains(method), "must implement: {}", method);
+    }
     fs::remove_dir_all(&tmp).ok();
   }
 
