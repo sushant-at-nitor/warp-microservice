@@ -1,6 +1,7 @@
 mod api_generator;
 mod app_generator;
 mod domain_generator;
+mod field_def;
 mod helpers;
 mod infra_generator;
 
