@@ -1,16 +1,20 @@
 mod create;
 mod delete;
 mod get_all;
+mod get_available;
 mod get_by_id;
 mod list;
+mod search;
 mod update;
 
 use std::sync::Arc;
 use warp::Filter;
 
 use application::books::{
-  CreateBookCommandHandler, DeleteBookCommandHandler, GetAllBooksQueryHandler,
-  GetBookByIdQueryHandler, ListBooksQueryHandler, UpdateBookCommandHandler,
+  CreateBookCommandHandler, DeleteBookCommandHandler,
+  GetAllBooksQueryHandler, GetAvailableBooksQueryHandler,
+  GetBookByIdQueryHandler, ListBooksQueryHandler, SearchBooksQueryHandler,
+  UpdateBookCommandHandler,
 };
 use infrastructure::{
   repositories::book_repository::BookRepository,
@@ -24,21 +28,30 @@ pub fn register(
 ) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
   let repo = BookRepository::new(state.db.connection.clone());
   let service = Arc::new(BookServiceImpl::new(repo));
-  let create_handler = Arc::new(CreateBookCommandHandler::new(service.clone()));
-  let update_handler = Arc::new(UpdateBookCommandHandler::new(service.clone()));
-  let delete_handler = Arc::new(DeleteBookCommandHandler::new(service.clone()));
+  let create_handler =
+    Arc::new(CreateBookCommandHandler::new(service.clone()));
+  let update_handler =
+    Arc::new(UpdateBookCommandHandler::new(service.clone()));
+  let delete_handler =
+    Arc::new(DeleteBookCommandHandler::new(service.clone()));
   let list_handler = Arc::new(ListBooksQueryHandler::new(service.clone()));
-  let get_all_handler = Arc::new(GetAllBooksQueryHandler::new(service.clone()));
+  let get_all_handler =
+    Arc::new(GetAllBooksQueryHandler::new(service.clone()));
   let get_by_id_handler =
     Arc::new(GetBookByIdQueryHandler::new(service.clone()));
+  let get_available_handler =
+    Arc::new(GetAvailableBooksQueryHandler::new(service.clone()));
+  let search_handler =
+    Arc::new(SearchBooksQueryHandler::new(service.clone()));
 
-  // Each route is self-contained under /books
   let create = create::route(create_handler);
   let update = update::route(update_handler);
   let delete = delete::route(delete_handler);
   let list = list::route(list_handler);
   let get_all = get_all::route(get_all_handler);
   let get_by_id = get_by_id::route(get_by_id_handler);
+  let get_available = get_available::route(get_available_handler);
+  let search = search::route(search_handler);
 
   create
     .or(update)
@@ -46,4 +59,6 @@ pub fn register(
     .or(list)
     .or(get_all)
     .or(get_by_id)
+    .or(get_available)
+    .or(search)
 }

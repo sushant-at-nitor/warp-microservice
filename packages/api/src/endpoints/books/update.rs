@@ -1,4 +1,4 @@
-use common::server_error::ServerError;
+use crate::errors::ApiError;
 use std::sync::Arc;
 use warp::Filter;
 
@@ -47,6 +47,6 @@ where
 
   match handler.handle(cmd).await {
     Ok(book) => Ok(warp::reply::json(&book)),
-    Err(_) => Err(warp::reject::custom(ServerError)),
+    Err(e) => Err(warp::reject::custom(ApiError::from(e))),
   }
 }

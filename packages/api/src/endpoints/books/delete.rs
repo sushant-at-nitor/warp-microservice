@@ -1,4 +1,4 @@
-use common::server_error::ServerError;
+use crate::errors::ApiError;
 use std::sync::Arc;
 use warp::Filter;
 
@@ -49,6 +49,6 @@ where
         Err(warp::reject::not_found())
       }
     },
-    Err(_) => Err(warp::reject::custom(ServerError)),
+    Err(e) => Err(warp::reject::custom(ApiError::from(e))),
   }
 }

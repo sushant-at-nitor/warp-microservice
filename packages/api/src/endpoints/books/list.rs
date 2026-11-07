@@ -4,7 +4,7 @@ use warp::Filter;
 use application::books::{
   BookService, ListBooksQueryHandler, ListBooksQueryHandlerTrait,
 };
-use common::server_error::ServerError;
+use crate::errors::ApiError;
 use domain::queries::ListBooks;
 
 pub fn route<T>(
@@ -42,6 +42,6 @@ where
 {
   match handler.handle(query).await {
     Ok(books) => Ok(warp::reply::json(&books)),
-    Err(_) => Err(warp::reject::custom(ServerError)),
+    Err(e) => Err(warp::reject::custom(ApiError::from(e))),
   }
 }

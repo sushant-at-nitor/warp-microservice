@@ -1,4 +1,6 @@
 pub mod endpoints;
+pub mod errors;
+pub mod rejection;
 pub mod startup;
 
 use env_logger::Env;
