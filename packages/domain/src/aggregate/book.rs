@@ -1,5 +1,6 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 
 use crate::{
   aggregate::aggregate_base::Aggregate,
@@ -62,7 +63,7 @@ impl DomainEvent for BookEvent {
 }
 
 // ---------- Aggregate Root ----------
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct Book {
   pub id: i32,
   pub title: String,
@@ -71,6 +72,8 @@ pub struct Book {
   pub total_copies: i32,
   pub available_copies: i32,
   pub published_year: Option<i32>,
+  #[serde(skip)]
+  #[schema(ignore)]
   pub domain_events: Vec<BookEvent>,
 }
 

@@ -24,6 +24,7 @@ domain = { path = "../domain" }
 common = { path = "../common" }
 database = { path = "../database" }
 uuid = { workspace = true }
+utoipa = { workspace = true }
 
 [dev-dependencies]
 tokio = { workspace = true }
